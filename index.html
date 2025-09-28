@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ministério de Louvor</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+  <style>
+    body { background-color: #111827; color: #f9fafb; }
+    .tab { padding: 0.75rem 1rem; cursor: pointer; }
+    .tab.active { background-color: #1f2937; border-radius: 0.5rem; }
+    .content { display: none; padding: 1rem; }
+    .content.active { display: block; }
+  </style>
+</head>
+<body class="font-sans">
+  <header class="p-4 bg-gray-900 text-center text-xl font-bold">
+    Ministério de Louvor
+  </header>
+
+  <!-- Navegação -->
+  <nav class="flex justify-around bg-gray-800 p-2">
+    <div class="tab active" data-tab="repertorio">🎶 Repertório</div>
+    <div class="tab" data-tab="escalas">📅 Escalas</div>
+    <div class="tab" data-tab="minhas-escalas">👤 Minhas Escalas</div>
+    <div class="tab" data-tab="ensaios">🎤 Ensaios</div>
+    <div class="tab" data-tab="uniformes">👕 Uniformes</div>
+    <div class="tab" data-tab="informacoes">ℹ️ Informações</div>
+    <div class="tab" data-tab="devocional">📖 Devocional</div>
+  </nav>
+
+  <!-- Conteúdo -->
+  <main class="p-4">
+    <section id="repertorio" class="content active">
+      <h2 class="text-lg font-bold mb-2">Repertório</h2>
+      <div id="repertorio-list"></div>
+    </section>
+
+    <section id="escalas" class="content">
+      <h2 class="text-lg font-bold mb-2">Escalas</h2>
+      <div id="escalas-list"></div>
+    </section>
+
+    <section id="minhas-escalas" class="content">
+      <h2 class="text-lg font-bold mb-2">Minhas Escalas</h2>
+      <div id="minhas-escalas-list"></div>
+    </section>
+
+    <section id="ensaios" class="content">
+      <h2 class="text-lg font-bold mb-2">Ensaios</h2>
+      <div id="ensaios-list"></div>
+    </section>
+
+    <section id="uniformes" class="content">
+      <h2 class="text-lg font-bold mb-2">Uniformes</h2>
+      <div id="uniformes-list"></div>
+    </section>
+
+    <section id="informacoes" class="content">
+      <h2 class="text-lg font-bold mb-2">Informações</h2>
+      <div id="informacoes-list"></div>
+    </section>
+
+    <section id="devocional" class="content">
+      <h2 class="text-lg font-bold mb-2">Devocional</h2>
+      <div id="devocional-list"></div>
+    </section>
+  </main>
+
+  <script>
+    // Navegação das abas
+    const tabs = document.querySelectorAll(".tab");
+    const contents = document.querySelectorAll(".content");
+
+    tabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        tabs.forEach(t => t.classList.remove("active"));
+        contents.forEach(c => c.classList.remove("active"));
+        tab.classList.add("active");
+        document.getElementById(tab.dataset.tab).classList.add("active");
+      });
+    });
+
+    // Configuração Firebase
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "louvor-adoracao.firebaseapp.com",
+      projectId: "louvor-adoracao",
+      storageBucket: "louvor-adoracao.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
+</body>
+</html>
