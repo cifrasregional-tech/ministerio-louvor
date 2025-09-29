@@ -6,10 +6,6 @@
 <title>Ministério de Louvor</title>
 <link rel="manifest" href="/manifest.json" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js"></script>
 <style>
   body { background-color: #111827; color: #f9fafb; }
   .tab { padding: 0.75rem 1rem; cursor: pointer; }
@@ -44,32 +40,26 @@
     <h2 class="text-lg font-bold mb-2">Repertório</h2>
     <div id="repertorio-list"></div>
   </section>
-
   <section id="escalas" class="content">
     <h2 class="text-lg font-bold mb-2">Escalas</h2>
     <div id="escalas-list"></div>
   </section>
-
   <section id="minhas-escalas" class="content">
     <h2 class="text-lg font-bold mb-2">Minhas Escalas</h2>
     <div id="minhas-escalas-list"></div>
   </section>
-
   <section id="ensaios" class="content">
     <h2 class="text-lg font-bold mb-2">Ensaios</h2>
     <div id="ensaios-list"></div>
   </section>
-
   <section id="uniformes" class="content">
     <h2 class="text-lg font-bold mb-2">Uniformes</h2>
     <div id="uniformes-list" class="uniformes-container"></div>
   </section>
-
   <section id="informacoes" class="content">
     <h2 class="text-lg font-bold mb-2">Informações</h2>
     <div id="informacoes-list"></div>
   </section>
-
   <section id="devocional" class="content">
     <h2 class="text-lg font-bold mb-2">Devocional</h2>
     <div id="devocional-list"></div>
@@ -82,18 +72,12 @@
   <button id="editar-uniformes">Editar Uniformes</button>
 </div>
 
-<script>
-  // Controle das abas
-  const tabs = document.querySelectorAll(".tab");
-  const contents = document.querySelectorAll(".content");
-  tabs.forEach(tab => tab.addEventListener("click", () => {
-    tabs.forEach(t => t.classList.remove("active"));
-    contents.forEach(c => c.classList.remove("active"));
-    tab.classList.add("active");
-    document.getElementById(tab.dataset.tab).classList.add("active");
-  }));
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js";
 
-  // Configuração Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAKbyjKMXasFjnW1lrivsvBDS8AOfJp3ng",
     authDomain: "louvor-adoracao.firebaseapp.com",
@@ -103,54 +87,57 @@
     appId: "1:857119220809:web:7f8fdbb991572222088b98",
     measurementId: "G-FQTFQPFN0X"
   };
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const auth = firebase.auth();
-  const messaging = firebase.messaging();
 
-  // Função de criação de item HTML
-  const criarItem = (data, campos) => {
-    let html = '';
-    campos.forEach(c => {
-      if (c.key === "link_cifra") {
-        html += `<p>${c.label}: <a href="${data[c.key]}" target="_blank" class="text-teal-400 underline">${data[c.key]}</a></p>`;
-      } else if(c.key === "avatar") {
-        html += `<div class="flex items-center mb-1"><img src="${data[c.key]}" class="avatar" alt="avatar"><span>${data.nome}</span></div>`;
-      } else {
-        html += `<p>${c.label}: ${data[c.key] || "-"}</p>`;
-      }
-    });
-    return html;
-  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  const messaging = getMessaging(app);
 
-  // Função para carregar coleções
-  const carregarColecao = (colecao, containerId, campos, horizontal=false) => {
+  // Controle abas
+  const tabs = document.querySelectorAll(".tab");
+  const contents = document.querySelectorAll(".content");
+  tabs.forEach(tab => tab.addEventListener("click", () => {
+    tabs.forEach(t => t.classList.remove("active"));
+    contents.forEach(c => c.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.tab).classList.add("active");
+  }));
+
+  // Função para criar item HTML
+  function criarItem(data, campos) {
+    return campos.map(c => {
+      if (c.key === "link_cifra") return `<p>${c.label}: <a href="${data[c.key]}" target="_blank" class="text-teal-400 underline">${data[c.key]}</a></p>`;
+      if (c.key === "avatar") return `<div class="flex items-center mb-1"><img src="${data[c.key]}" class="avatar" alt="avatar"><span>${data.nome}</span></div>`;
+      return `<p>${c.label}: ${data[c.key] || "-"}</p>`;
+    }).join('');
+  }
+
+  async function carregarColecao(colecao, containerId, campos, horizontal=false) {
     const container = document.getElementById(containerId);
-    container.innerHTML = ''; // Limpa antes de renderizar
-    db.collection(colecao).get().then(snapshot => {
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        const div = document.createElement('div');
-        if(horizontal) {
-          div.classList.add('uniforme-item');
-          div.innerHTML = `<img src="${data.image}" alt="${data.nome}">`;
-        } else {
-          div.classList.add(`${containerId}-item`);
-          div.innerHTML = criarItem(data, campos);
-        }
-        container.appendChild(div);
-      });
-    }).catch(err => console.error("Erro ao carregar coleção:", colecao, err));
-  };
+    container.innerHTML = '';
+    const snapshot = await getDocs(collection(db, colecao));
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      const div = document.createElement('div');
+      if(horizontal){
+        div.classList.add('uniforme-item');
+        div.innerHTML = `<img src="${data.image}" alt="${data.nome}">`;
+      } else {
+        div.classList.add(`${containerId}-item`);
+        div.innerHTML = criarItem(data, campos);
+      }
+      container.appendChild(div);
+    });
+  }
 
-  // Carregar todas as abas
-  carregarColecao("Repertorio", "repertorio-list", [{key:"nome", label:"Música"}, {key:"link_cifra", label:"Cifra"}]);
-  carregarColecao("Escalas", "escalas-list", [{key:"nome", label:"Nome"}, {key:"descricao", label:"Descrição"}]);
-  carregarColecao("MinhasEscalas", "minhas-escalas-list", [{key:"nome", label:"Nome"}, {key:"participacao", label:"Participação"}]);
-  carregarColecao("Ensaios", "ensaios-list", [{key:"nome", label:"Nome"}, {key:"horario", label:"Horário"}]);
-  carregarColecao("Uniformes", "uniformes-list", [{key:"nome", label:"Nome"}, {key:"image", label:"Imagem"}], true);
-  carregarColecao("Informacoes", "informacoes-list", [{key:"titulo", label:"Título"}, {key:"descricao", label:"Descrição"}]);
-  carregarColecao("Devocional", "devocional-list", [{key:"titulo", label:"Título"}, {key:"texto", label:"Texto"}]);
+  // Carregar abas
+  carregarColecao("Repertorio","repertorio-list",[ {key:"nome", label:"Música"}, {key:"link_cifra", label:"Cifra"} ]);
+  carregarColecao("Escalas","escalas-list",[ {key:"nome", label:"Nome"}, {key:"descricao", label:"Descrição"} ]);
+  carregarColecao("MinhasEscalas","minhas-escalas-list",[ {key:"nome", label:"Nome"}, {key:"participacao", label:"Participação"} ]);
+  carregarColecao("Ensaios","ensaios-list",[ {key:"nome", label:"Nome"}, {key:"horario", label:"Horário"} ]);
+  carregarColecao("Uniformes","uniformes-list",[ {key:"nome", label:"Nome"}, {key:"image", label:"Imagem"} ], true );
+  carregarColecao("Informacoes","informacoes-list",[ {key:"titulo", label:"Título"}, {key:"descricao", label:"Descrição"} ]);
+  carregarColecao("Devocional","devocional-list",[ {key:"titulo", label:"Título"}, {key:"texto", label:"Texto"} ]);
 
   // Login Admin
   const loginButton = document.getElementById("login-admin");
@@ -158,17 +145,16 @@
   loginButton.addEventListener("click", () => {
     const email = prompt("Email admin:");
     const password = prompt("Senha:");
-    auth.signInWithEmailAndPassword(email, password)
+    signInWithEmailAndPassword(auth,email,password)
       .then(() => { adminButtons.style.display = "flex"; alert("Login admin realizado!"); })
       .catch(err => alert("Erro no login admin: " + err.message));
   });
 
   // Notificações FCM
-  messaging.requestPermission()
-    .then(() => messaging.getToken())
-    .then(token => console.log("Token FCM:", token))
+  getToken(messaging, { vapidKey: "SUA_VAPID_KEY_AQUI" })
+    .then((currentToken) => { console.log("Token FCM:", currentToken); })
     .catch(err => console.log("Erro FCM:", err));
-</script>
 
+</script>
 </body>
 </html>
