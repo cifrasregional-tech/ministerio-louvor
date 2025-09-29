@@ -1,25 +1,29 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ministério de Louvor</title>
-  <link rel="manifest" href="/manifest.json" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" />
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
-  <style>
-    body { background-color: #111827; color: #f9fafb; }
-    .tab { padding: 0.75rem 1rem; cursor: pointer; }
-    .tab.active { background-color: #1f2937; border-radius: 0.5rem; }
-    .content { display: none; padding: 1rem; }
-    .content.active { display: block; }
-    .grid-uniformes { display: flex; flex-wrap: wrap; gap: 1rem; }
-    .uniforme-card { width: 120px; text-align: center; }
-    img { border-radius: 0.5rem; }
-    button { background-color: #2563eb; padding: 0.5rem 1rem; border-radius: 0.5rem; color: white; cursor: pointer; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ministério de Louvor</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"></script>
+<style>
+body { background-color: #111827; color: #f9fafb; }
+.tab { padding: 0.75rem 1rem; cursor: pointer; }
+.tab.active { background-color: #1f2937; border-radius: 0.5rem; }
+.content { display: none; padding: 1rem; }
+.content.active { display: block; }
+.grid-uniformes { display: flex; flex-wrap: wrap; gap: 1rem; }
+.uniforme-card { width: 120px; text-align: center; }
+img { border-radius: 0.5rem; }
+button { background-color: #2563eb; padding: 0.5rem 1rem; border-radius: 0.5rem; color: white; cursor: pointer; margin:0.25rem 0; }
+.edit-btn { background-color: #f59e0b; margin-left: 0.5rem; }
+.delete-btn { background-color: #ef4444; margin-left: 0.5rem; }
+input { background-color: #1f2937; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 0.25rem; }
+.add-btn { background-color: #10b981; margin-bottom: 0.5rem; }
+</style>
 </head>
 <body class="font-sans">
 
@@ -27,7 +31,6 @@
   Ministério de Louvor
 </header>
 
-<!-- Navegação -->
 <nav class="flex justify-around bg-gray-800 p-2">
   <div class="tab active" data-tab="repertorio">🎶 Repertório</div>
   <div class="tab" data-tab="escalas">📅 Escalas</div>
@@ -39,146 +42,170 @@
 </nav>
 
 <main class="p-4">
-  <!-- Repertório -->
   <section id="repertorio" class="content active">
     <h2 class="text-lg font-bold mb-2">Repertório</h2>
+    <button class="add-btn" onclick="addDocument('repertorio')">Adicionar</button>
     <ul id="repertorio-list"></ul>
   </section>
 
-  <!-- Escalas -->
   <section id="escalas" class="content">
     <h2 class="text-lg font-bold mb-2">Escalas</h2>
+    <button class="add-btn" onclick="addDocument('escalas')">Adicionar</button>
     <ul id="escalas-list"></ul>
   </section>
 
-  <!-- Minhas Escalas -->
   <section id="minhasEscalas" class="content">
     <h2 class="text-lg font-bold mb-2">Minhas Escalas</h2>
     <ul id="minhasEscalas-list"></ul>
   </section>
 
-  <!-- Ensaios -->
   <section id="ensaios" class="content">
     <h2 class="text-lg font-bold mb-2">Ensaios</h2>
+    <button class="add-btn" onclick="addDocument('ensaios')">Adicionar</button>
     <ul id="ensaios-list"></ul>
   </section>
 
-  <!-- Uniformes -->
   <section id="uniformes" class="content">
     <h2 class="text-lg font-bold mb-2">Uniformes</h2>
+    <button class="add-btn" onclick="addDocument('uniformes')">Adicionar</button>
     <div id="uniformes-list" class="grid-uniformes"></div>
   </section>
 
-  <!-- Informações -->
   <section id="informacoes" class="content">
     <h2 class="text-lg font-bold mb-2">Informações</h2>
+    <button class="add-btn" onclick="addDocument('informacoes')">Adicionar</button>
     <ul id="informacoes-list"></ul>
   </section>
 
-  <!-- Devocional -->
   <section id="devocional" class="content">
     <h2 class="text-lg font-bold mb-2">Devocional</h2>
+    <button class="add-btn" onclick="addDocument('devocional')">Adicionar</button>
     <ul id="devocional-list"></ul>
   </section>
 </main>
 
-<!-- Login -->
 <div class="p-4 text-center">
   <button id="loginBtn">Login Admin</button>
 </div>
 
 <script>
-  // Navegação abas
-  const tabs = document.querySelectorAll(".tab");
-  const contents = document.querySelectorAll(".content");
-
-  tabs.forEach(tab => {
-    tab.addEventListener("click", () => {
-      tabs.forEach(t => t.classList.remove("active"));
-      contents.forEach(c => c.classList.remove("active"));
-      tab.classList.add("active");
-      document.getElementById(tab.dataset.tab).classList.add("active");
-    });
+const tabs = document.querySelectorAll(".tab");
+const contents = document.querySelectorAll(".content");
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    tabs.forEach(t=>t.classList.remove("active"));
+    contents.forEach(c=>c.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById(tab.dataset.tab).classList.add("active");
   });
+});
 
-  // Firebase config
-  const firebaseConfig = {
-    apiKey: "AIzaSyAKbyjKMXasFjnW1lrivsvBDS8AOfJp3ng",
-    authDomain: "louvor-adoracao.firebaseapp.com",
-    projectId: "louvor-adoracao",
-    storageBucket: "louvor-adoracao.appspot.com",
-    messagingSenderId: "857119220809",
-    appId: "1:857119220809:web:7f8fdbb991572222088b98",
-    measurementId: "G-FQTFQPFN0X"
-  };
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyAKbyjKMXasFjnW1lrivsvBDS8AOfJp3ng",
+  authDomain: "louvor-adoracao.firebaseapp.com",
+  projectId: "louvor-adoracao",
+  storageBucket: "louvor-adoracao.appspot.com",
+  messagingSenderId: "857119220809",
+  appId: "1:857119220809:web:7f8fdbb991572222088b98",
+  measurementId: "G-FQTFQPFN0X"
+};
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
 
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
-  const auth = firebase.auth();
+let currentUser = null;
+const loginBtn = document.getElementById("loginBtn");
 
-  // Função de login admin (Firebase Auth Google)
-  const loginBtn = document.getElementById("loginBtn");
-  let currentUser = null;
+// Login Admin
+loginBtn.addEventListener("click", async ()=>{
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try{
+    const result = await auth.signInWithPopup(provider);
+    currentUser = result.user;
+    alert(`Logado como: ${currentUser.displayName}`);
+    loadAll();
+  }catch(err){console.error(err); alert("Erro no login");}
+});
 
-  loginBtn.addEventListener("click", async () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    try {
-      const result = await auth.signInWithPopup(provider);
-      currentUser = result.user;
-      alert(`Logado como: ${currentUser.displayName}`);
-    } catch(err) {
-      console.error(err);
-      alert("Erro no login");
+// Função para carregar coleções
+async function loadCollection(name, containerId, filterFn){
+  const container = document.getElementById(containerId);
+  container.innerHTML = "";
+  const snapshot = await db.collection(name).get();
+  snapshot.forEach(doc=>{
+    const data = doc.data();
+    if(filterFn && !filterFn(data)) return;
+
+    if(containerId==="uniformes-list"){
+      const card=document.createElement("div");
+      card.className="uniforme-card";
+      card.innerHTML=`<img src="${data.image||data.previa_url}" alt="${data.nome||''}" width="120"><p>${data.nome||''}</p>`;
+      if(currentUser){
+        const editBtn=document.createElement("button");
+        editBtn.textContent="Editar";
+        editBtn.className="edit-btn";
+        editBtn.onclick=()=>editDocument(name, doc.id, data);
+        card.appendChild(editBtn);
+        const delBtn=document.createElement("button");
+        delBtn.textContent="Excluir";
+        delBtn.className="delete-btn";
+        delBtn.onclick=()=>deleteDocument(name, doc.id);
+        card.appendChild(delBtn);
+      }
+      container.appendChild(card);
+    }else{
+      const li=document.createElement("li");
+      li.textContent=data.nome||JSON.stringify(data);
+      if(currentUser){
+        const editBtn=document.createElement("button");
+        editBtn.textContent="Editar";
+        editBtn.className="edit-btn";
+        editBtn.onclick=()=>editDocument(name, doc.id, data);
+        li.appendChild(editBtn);
+        const delBtn=document.createElement("button");
+        delBtn.textContent="Excluir";
+        delBtn.className="delete-btn";
+        delBtn.onclick=()=>deleteDocument(name, doc.id);
+        li.appendChild(delBtn);
+      }
+      container.appendChild(li);
     }
   });
+}
 
-  // Função para popular listas
-  async function loadCollection(collectionName, containerId, filterFn) {
-    const container = document.getElementById(containerId);
-    container.innerHTML = "";
-
-    const snapshot = await db.collection(collectionName).get();
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (filterFn && !filterFn(data)) return;
-
-      // Cria item de lista ou card
-      if(containerId === "uniformes-list") {
-        const card = document.createElement("div");
-        card.className = "uniforme-card";
-        card.innerHTML = `
-          <img src="${data.image || data.previa_url}" alt="${data.nome || ''}" width="120" />
-          <p>${data.nome || ''}</p>
-        `;
-        container.appendChild(card);
-      } else {
-        const li = document.createElement("li");
-        li.textContent = data.nome || JSON.stringify(data);
-        container.appendChild(li);
-      }
-    });
-  }
-
-  // Carrega todas as coleções
-  async function loadAll() {
-    await loadCollection("repertorio", "repertorio-list");
-    await loadCollection("escalas", "escalas-list");
-    await loadCollection("minhasEscalas", "minhasEscalas-list", data => {
-      return currentUser ? (data.integrantes && data.integrantes.includes(currentUser.displayName)) : true;
-    });
-    await loadCollection("ensaios", "ensaios-list");
-    await loadCollection("uniformes", "uniformes-list");
-    await loadCollection("informacoes", "informacoes-list");
-    await loadCollection("devocional", "devocional-list");
-  }
-
-  auth.onAuthStateChanged(user => {
-    currentUser = user;
-    loadAll();
-  });
-
+// Funções admin inline
+async function editDocument(col, id, data){
+  const newName = prompt("Editar nome:", data.nome||"");
+  if(newName) await db.collection(col).doc(id).update({nome:newName});
   loadAll();
-</script>
+}
+async function deleteDocument(col,id){
+  if(confirm("Deseja realmente excluir?")){await db.collection(col).doc(id).delete(); loadAll();}
+}
+async function addDocument(col){
+  const nome=prompt("Nome do registro:");
+  if(nome) await db.collection(col).add({nome});
+  loadAll();
+}
 
+// Carregar todas as coleções
+async function loadAll(){
+  await loadCollection("repertorio","repertorio-list");
+  await loadCollection("escalas","escalas-list");
+  await loadCollection("minhasEscalas","minhasEscalas-list", data=>currentUser? (data.integrantes && data.integrantes.includes(currentUser.displayName)) : true);
+  await loadCollection("ensaios","ensaios-list");
+  await loadCollection("uniformes","uniformes-list");
+  await loadCollection("informacoes","informacoes-list");
+  await loadCollection("devocional","devocional-list");
+}
+
+auth.onAuthStateChanged(user=>{
+  currentUser=user;
+  loadAll();
+});
+
+loadAll();
+</script>
 </body>
 </html>
